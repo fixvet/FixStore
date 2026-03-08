@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no"/>
+  <title>FixStore</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash" class="splash">
+  <div class="splash-logo"><span class="splash-fx">Fix</span><span class="splash-store">Store</span></div>
+  <div class="splash-tagline">Духи · Одежда · Стиль</div>
+  <div class="splash-loader"><div class="splash-bar"></div></div>
+</div>
+
+<div id="app" class="app hidden">
+
+  <!-- ═══ ГЛАВНАЯ ═══ -->
+  <div id="page-home" class="page">
+    <header class="header">
+      <div class="header-brand"><span class="brand-fix">Fix</span><span class="brand-store">Store</span></div>
+      <div class="header-actions">
+        <button class="icon-btn" id="btn-quiz-open" title="Подбор аромата">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3M12 17h.01"/></svg>
+        </button>
+        <button class="icon-btn" id="btn-wishlist-header" title="Избранное">
+          <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+          <span class="badge" id="wishlist-badge" style="display:none"></span>
+        </button>
+        <button class="icon-btn" id="btn-cart-header" title="Корзина">
+          <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/></svg>
+          <span class="badge" id="cart-badge" style="display:none"></span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Stories -->
+    <div class="stories-wrap"><div class="stories-track" id="stories-track"></div></div>
+
+    <!-- Drop banner -->
+    <div id="drop-banner" class="drop-banner hidden">
+      <div><div class="drop-label">⚡ Следующий дроп</div><div class="drop-sub" id="drop-name"></div></div>
+      <div class="drop-timer" id="drop-timer">00:00:00</div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-wrap">
+      <div class="search-box">
+        <svg class="search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="search-input" placeholder="Поиск..." autocomplete="off"/>
+        <button id="search-clear" class="search-clear hidden">✕</button>
+      </div>
+      <div id="search-suggestions" class="search-suggestions hidden"></div>
+    </div>
+
+    <!-- Filters + Sort -->
+    <div class="filters-row">
+      <div class="filters" id="filters-list">
+        <button class="filter-btn active" data-filter="all">Все</button>
+        <button class="filter-btn" data-filter="perfume">🌸 Духи</button>
+        <button class="filter-btn" data-filter="clothes">👔 Одежда</button>
+        <button class="filter-btn" data-filter="new">✨ Новинки</button>
+        <button class="filter-btn" data-filter="hits">🔥 Хиты</button>
+      </div>
+      <div class="sort-wrap">
+        <button class="sort-btn" id="btn-sort">
+          <svg viewBox="0 0 24 24" width="13" height="13"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="14" y2="12"/><line x1="4" y1="18" x2="10" y2="18"/></svg>
+          <span id="sort-label">Сортировка</span>
+        </button>
+        <div id="sort-dropdown" class="sort-dropdown hidden">
+          <button class="sort-opt active" data-sort="default">По умолчанию</button>
+          <button class="sort-opt" data-sort="price-asc">Цена ↑</button>
+          <button class="sort-opt" data-sort="price-desc">Цена ↓</button>
+          <button class="sort-opt" data-sort="popular">Популярные</button>
+          <button class="sort-opt" data-sort="new">Новинки</button>
+          <button class="sort-opt" data-sort="rating">По рейтингу</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sections -->
+    <div id="recently-section" class="mini-section hidden">
+      <div class="mini-section-title">👀 Недавно смотрели</div>
+      <div class="mini-scroll" id="recently-track"></div>
+    </div>
+    <div id="hits-section" class="mini-section hidden">
+      <div class="mini-section-title">🔥 Хиты продаж</div>
+      <div class="mini-scroll" id="hits-track"></div>
+    </div>
+    <div id="new-section" class="mini-section hidden">
+      <div class="mini-section-title">✨ Новинки</div>
+      <div class="mini-scroll" id="new-track"></div>
+    </div>
+
+    <div class="section-divider" id="all-divider"></div>
+    <div id="products-grid" class="products-grid"></div>
+    <div id="home-empty" class="empty-state hidden">
+      <div class="empty-icon">🏪</div>
+      <div class="empty-text">Товаров пока нет</div>
+      <div class="empty-sub">Администратор скоро добавит товары</div>
+    </div>
+
+    <!-- Spin promo -->
+    <div class="spin-promo-bar" id="spin-promo-bar">
+      <div class="spin-promo-text">🎰 Попробуйте удачу — выиграйте скидку!</div>
+      <button class="spin-promo-btn" id="btn-spin-open">Крутить</button>
+    </div>
+
+    <!-- "Товар дня" -->
+    <div id="daily-deal-section" class="daily-deal hidden">
+      <div class="dd-header">
+        <div class="dd-title">⏱ Товар дня</div>
+        <div class="dd-timer" id="dd-timer">00:00:00</div>
+      </div>
+      <div id="dd-product"></div>
+    </div>
+  </div>
+
+  <!-- ═══ ИЗБРАННОЕ ═══ -->
+  <div id="page-wishlist" class="page">
+    <header class="header">
+      <button class="back-btn" id="btn-back-wishlist"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <h2 class="header-title">Избранное</h2>
+    </header>
+    <div id="wishlist-empty" class="empty-state">
+      <div class="empty-icon">🤍</div>
+      <div class="empty-text">Список пуст</div>
+      <button class="btn-outline" onclick="navigate('home')">В магазин →</button>
+    </div>
+    <div id="wishlist-grid" class="products-grid" style="padding-top:12px"></div>
+  </div>
+
+  <!-- ═══ ТОВАР ═══ -->
+  <div id="page-product" class="page">
+    <div class="product-page-inner">
+      <div class="carousel-wrap" id="product-carousel">
+        <div class="carousel-track" id="carousel-track"></div>
+        <div class="carousel-dots" id="carousel-dots"></div>
+        <button class="carousel-arrow left hidden" id="carousel-prev">‹</button>
+        <button class="carousel-arrow right hidden" id="carousel-next">›</button>
+        <button class="back-btn product-back" id="btn-back-product"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <button class="fab-icon wishlist-fab" id="btn-product-wishlist"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg></button>
+        <button class="fab-icon share-fab" id="btn-product-share"><svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg></button>
+        <div class="product-badge-wrap" id="product-badges-wrap"></div>
+      </div>
+
+      <div class="product-details">
+        <div class="product-meta">
+          <div class="product-meta-left">
+            <h1 id="product-name" class="product-name"></h1>
+            <div class="product-rating-row">
+              <span class="stars" id="product-stars"></span>
+              <span class="rating-count" id="product-review-count"></span>
+              <span class="sold-count" id="product-sold"></span>
+            </div>
+          </div>
+          <div class="price-block">
+            <div id="product-price" class="product-price"></div>
+            <div id="product-old-price" class="product-old-price hidden"></div>
+          </div>
+        </div>
+
+        <div id="perfume-notes-block" class="info-block hidden">
+          <div class="info-block-title">🎵 Пирамида аромата</div>
+          <div id="notes-grid" class="notes-grid"></div>
+        </div>
+
+        <div id="size-guide-block" class="info-block hidden">
+          <div class="size-row">
+            <div class="size-select-wrap">
+              <span class="size-label">Размер:</span>
+              <div class="sizes-list" id="sizes-list"></div>
+            </div>
+            <button class="size-guide-btn" id="btn-size-guide">Таблица</button>
+          </div>
+        </div>
+
+        <p id="product-desc" class="product-desc"></p>
+        <div class="product-tags" id="product-tags"></div>
+
+        <div id="stock-indicator" class="stock-indicator hidden"></div>
+
+        <div id="bought-together-block" class="bought-together hidden">
+          <div class="bt-title">🛍 С этим часто берут</div>
+          <div class="bt-list" id="bt-list"></div>
+        </div>
+
+        <div class="product-actions">
+          <div class="qty-control">
+            <button class="qty-btn" id="qty-minus">−</button>
+            <span id="qty-val">1</span>
+            <button class="qty-btn" id="qty-plus">+</button>
+          </div>
+          <button class="btn-primary add-cart-btn" id="btn-add-cart">В корзину</button>
+        </div>
+
+        <div class="reviews-section">
+          <div class="reviews-header">
+            <div class="reviews-title">Отзывы</div>
+            <button class="btn-add-review" id="btn-add-review">+ Отзыв</button>
+          </div>
+          <div id="reviews-list" class="reviews-list"></div>
+          <div id="reviews-empty" class="reviews-empty">Будьте первым!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ КОРЗИНА ═══ -->
+  <div id="page-cart" class="page">
+    <header class="header">
+      <button class="back-btn" id="btn-back-cart"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <h2 class="header-title">Корзина</h2>
+      <button class="text-btn" id="btn-clear-cart">Очистить</button>
+    </header>
+    <div id="cart-empty" class="empty-state">
+      <div class="empty-icon">🛒</div>
+      <div class="empty-text">Корзина пуста</div>
+      <button class="btn-outline" onclick="navigate('home')">За покупками →</button>
+    </div>
+    <div id="cart-content" class="hidden">
+      <div id="cart-items" class="cart-items"></div>
+      <div id="upsell-section" class="upsell-section hidden">
+        <div class="upsell-title">⚡ С этим берут</div>
+        <div class="upsell-list" id="upsell-list"></div>
+      </div>
+      <div id="tier-banner" class="tier-banner hidden"></div>
+      <div class="promo-section">
+        <div class="promo-row">
+          <input type="text" id="promo-input" placeholder="Промокод"/>
+          <button class="btn-apply-promo" id="btn-apply-promo">Применить</button>
+        </div>
+        <div id="promo-result" class="promo-result hidden"></div>
+      </div>
+      <div class="delivery-section">
+        <h3 class="section-title">🚚 Доставка</h3>
+        <div class="delivery-tabs">
+          <button class="delivery-tab active" data-mode="pvz">Пункт выдачи</button>
+          <button class="delivery-tab" data-mode="meeting">📍 Встреча · Шахты</button>
+        </div>
+        <div id="pvz-block">
+          <div class="city-select-wrap">
+            <label class="city-label">Город:</label>
+            <select id="pvz-city-select" class="city-select"></select>
+          </div>
+          <div id="pvz-list" class="pvz-list"></div>
+        </div>
+        <div id="meeting-info" class="meeting-info hidden">
+          <div class="meeting-card">
+            <div class="meeting-icon">🤝</div>
+            <div class="meeting-details">
+              <div class="meeting-title">Личная встреча · г. Шахты</div>
+              <div class="meeting-note">После оформления заказа мы напишем в Telegram и согласуем удобное место и время</div>
+            </div>
+            <div class="gold fw600">Бесплатно</div>
+          </div>
+        </div>
+      </div>
+      <div class="cart-summary">
+        <div class="summary-row"><span>Товары</span><span id="sum-items">0 ₽</span></div>
+        <div class="summary-row" id="discount-row" style="display:none"><span class="green">Скидка</span><span class="green" id="sum-discount">−0 ₽</span></div>
+        <div class="summary-row"><span>Доставка</span><span id="sum-delivery">—</span></div>
+        <div class="summary-row total"><span>Итого</span><span id="sum-total">0 ₽</span></div>
+        <button class="btn-primary full" id="btn-checkout">Оформить заказ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ ОПЛАТА ═══ -->
+  <div id="page-payment" class="page">
+    <header class="header">
+      <button class="back-btn" id="btn-back-payment"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <h2 class="header-title">Оплата</h2>
+    </header>
+    <div class="payment-content">
+      <div class="order-summary-card">
+        <div class="oc-title">Состав заказа</div>
+        <div id="payment-items-preview"></div>
+        <div class="oc-total"><span>К оплате</span><span id="payment-total" class="gold"></span></div>
+      </div>
+      <h3 class="section-title mb10">Способ оплаты</h3>
+      <div class="payment-methods">
+        <label class="pay-method"><input type="radio" name="paymethod" value="robokassa_card" checked/>
+          <div class="pay-method-card"><span class="pay-icon">💳</span><div class="pay-info"><div class="pay-name">Банковская карта</div><div class="pay-sub">Visa · MC · МИР — Robokassa</div></div><div class="pay-check">✓</div></div></label>
+        <label class="pay-method"><input type="radio" name="paymethod" value="robokassa_sbp"/>
+          <div class="pay-method-card"><span class="pay-icon">⚡</span><div class="pay-info"><div class="pay-name">СБП</div><div class="pay-sub">Быстрый перевод — Robokassa</div></div><div class="pay-check">✓</div></div></label>
+        <label class="pay-method"><input type="radio" name="paymethod" value="balance"/>
+          <div class="pay-method-card"><span class="pay-icon">💰</span><div class="pay-info"><div class="pay-name">Баланс</div><div class="pay-sub">Доступно: <span id="balance-display">0</span> ₽</div></div><div class="pay-check">✓</div></div></label>
+      </div>
+      <div id="robokassa-info-block" class="robokassa-notice">
+        <div class="rk-header"><span>🔒</span><span class="rk-name">Robokassa — безопасная оплата</span></div>
+        <p>Вы перейдёте на защищённую страницу. После оплаты вернитесь в магазин.</p>
+      </div>
+      <div id="balance-insufficient" class="balance-warn hidden">⚠️ Недостаточно средств. <button class="link-btn" onclick="document.getElementById('modal-topup').classList.remove('hidden')">Пополнить</button></div>
+      <button class="btn-primary full" id="btn-pay"><span id="btn-pay-text">Перейти к оплате</span></button>
+      <div class="rk-secure-row"><span>🔐 PCI DSS</span><span>·</span><span>SSL</span><span>·</span><span>3D-Secure</span></div>
+    </div>
+  </div>
+
+  <!-- ═══ ПРОФИЛЬ ═══ -->
+  <div id="page-profile" class="page">
+    <header class="header"><h2 class="header-title">Профиль</h2></header>
+    <div class="profile-content">
+      <div class="profile-hero">
+        <div class="avatar-ring">
+          <img id="profile-avatar-img" class="avatar-img hidden" src="" alt=""/>
+          <div class="avatar" id="profile-avatar">?</div>
+        </div>
+        <div class="profile-name" id="profile-name">Гость</div>
+        <div class="profile-username" id="profile-username"></div>
+        <div id="tg-verified-badge" class="tg-verified hidden">
+          <svg viewBox="0 0 24 24" width="12" height="12"><path fill="#2AABEE" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5l-4-4 1.41-1.41L10 13.67l6.59-6.59L18 8.5l-8 8z"/></svg>
+          Telegram привязан
+        </div>
+        <div id="google-linked-badge" class="google-badge hidden">
+          <svg viewBox="0 0 24 24" width="12" height="12"><path fill="#EA4335" d="M12 11v2.6h4.4c-.2 1-1.4 3-4.4 3-2.6 0-4.8-2.2-4.8-4.8s2.2-4.8 4.8-4.8c1.5 0 2.5.6 3.1 1.2l2.1-2C15.9 5.2 14 4.4 12 4.4 7.8 4.4 4.4 7.8 4.4 12s3.4 7.6 7.6 7.6c4.4 0 7.3-3.1 7.3-7.4 0-.5-.1-.9-.1-1.2H12z"/></svg>
+          Google привязан
+        </div>
+      </div>
+
+      <!-- Balance -->
+      <div class="balance-card">
+        <div><div class="balance-label">Баланс</div><div class="balance-value"><span id="profile-balance">0</span> ₽</div></div>
+        <button class="btn-topup" id="btn-topup">+ Пополнить</button>
+      </div>
+
+      <div class="profile-stats">
+        <div class="stat-item"><div class="stat-val" id="stat-orders">0</div><div class="stat-label">Заказов</div></div>
+        <div class="stat-item"><div class="stat-val" id="stat-refs">0</div><div class="stat-label">Рефералов</div></div>
+        <div class="stat-item"><div class="stat-val" id="stat-bonus">0 ₽</div><div class="stat-label">Бонусов</div></div>
+      </div>
+
+      <!-- ADMIN BUTTON — shown only for admin user -->
+      <div id="admin-access-card" class="admin-access-card hidden">
+        <button class="btn-admin-access" id="btn-goto-admin">
+          <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 1l3 5h5l-4 4 2 6-6-3-6 3 2-6-4-4h5z"/></svg>
+          Панель администратора
+        </button>
+      </div>
+
+      <!-- Auth section -->
+      <div class="auth-section">
+        <div class="auth-title">🔗 Привязка аккаунтов</div>
+        <!-- TG Connect -->
+        <div class="tg-connect-card">
+          <div class="tgc-mini-title">📱 Telegram</div>
+          <div id="tgc-step1">
+            <div class="tgc-phone-row">
+              <div class="phone-prefix">+7</div>
+              <input type="tel" id="tgc-phone" placeholder="900 000 00 00" maxlength="13" inputmode="numeric"/>
+            </div>
+            <button class="btn-primary full tgc-btn" id="btn-tgc-send">Получить код</button>
+            <div class="or-divider"><span>или</span></div>
+            <button class="btn-tg-contact" id="btn-tg-contact">
+              <svg viewBox="0 0 24 24" width="15" height="15"><path fill="#2AABEE" d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.94 8.19l-2.02 9.52c-.15.67-.54.84-1.08.52l-3-2.21-1.45 1.4c-.16.16-.3.3-.61.3l.21-3.03 5.5-4.97c.24-.21-.05-.33-.37-.12l-6.8 4.28-2.93-.92c-.64-.2-.65-.64.13-.95l11.44-4.41c.53-.19 1 .13.98.59z"/></svg>
+              Поделиться контактом
+            </button>
+          </div>
+          <div id="tgc-step2" class="hidden">
+            <div class="code-hint">Код отправлен на <strong id="tgc-phone-display"></strong></div>
+            <div class="code-inputs">
+              <input class="code-digit" type="text" maxlength="1" inputmode="numeric"/>
+              <input class="code-digit" type="text" maxlength="1" inputmode="numeric"/>
+              <input class="code-digit" type="text" maxlength="1" inputmode="numeric"/>
+              <input class="code-digit" type="text" maxlength="1" inputmode="numeric"/>
+              <input class="code-digit" type="text" maxlength="1" inputmode="numeric"/>
+            </div>
+            <div class="code-timer" id="code-timer">Повторить через <span id="timer-sec">60</span>с</div>
+            <button class="btn-primary full" id="btn-tgc-verify">Подтвердить</button>
+            <button class="link-btn" id="btn-tgc-back">← Изменить номер</button>
+          </div>
+          <div id="tgc-linked" class="hidden">
+            <div class="linked-row">
+              <div><div class="linked-phone" id="tgc-linked-phone"></div><div class="linked-date">Привязан <span id="tgc-link-date"></span></div></div>
+              <button class="btn-danger-sm" id="btn-tgc-unlink">Отвязать</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Google Auth -->
+        <div class="google-auth-card">
+          <div class="tgc-mini-title">🔵 Google аккаунт</div>
+          <div id="google-unlinked">
+            <p class="google-desc">Войдите через Google для быстрого доступа и синхронизации данных</p>
+            <div id="google-signin-btn-wrap"></div>
+            <div id="g_id_onload"
+              data-client_id="YOUR_GOOGLE_CLIENT_ID"
+              data-callback="handleGoogleSignIn"
+              data-auto_prompt="false">
+            </div>
+            <button class="btn-google" id="btn-google-manual">
+              <svg viewBox="0 0 24 24" width="18" height="18"><path fill="#EA4335" d="M12 11v2.6h4.4c-.2 1-1.4 3-4.4 3-2.6 0-4.8-2.2-4.8-4.8s2.2-4.8 4.8-4.8c1.5 0 2.5.6 3.1 1.2l2.1-2C15.9 5.2 14 4.4 12 4.4 7.8 4.4 4.4 7.8 4.4 12s3.4 7.6 7.6 7.6c4.4 0 7.3-3.1 7.3-7.4 0-.5-.1-.9-.1-1.2H12z"/><path fill="#FBBC05" d="M3.5 7.4l2.2 1.6C6.5 7.1 9.1 5.6 12 5.6c1.5 0 2.9.5 3.9 1.4l2.1-2.1C16.4 3.5 14.3 2.6 12 2.6c-3.7 0-6.8 2.1-8.5 4.8z"/><path fill="#34A853" d="M12 21.4c2.3 0 4.3-.8 5.8-2.1l-2.2-1.8c-.8.6-1.9.9-3 1-2.8 0-5.2-1.9-6.1-4.4l-2.2 1.7c1.6 2.8 4.6 4.6 7.7 4.6z"/><path fill="#4285F4" d="M20.8 12c0-.5-.1-.9-.1-1.3H12V13h4.8c-.2 1.1-.9 2.1-1.9 2.7l2.2 1.7c1.7-1.5 2.7-3.8 2.7-6.4z"/></svg>
+              Войти через Google
+            </button>
+          </div>
+          <div id="google-linked-info" class="hidden">
+            <div class="linked-row">
+              <div>
+                <div class="linked-phone" id="google-email-display"></div>
+                <div class="linked-date" id="google-link-date"></div>
+              </div>
+              <button class="btn-danger-sm" id="btn-google-unlink">Отвязать</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Referral -->
+      <div class="ref-card">
+        <div class="ref-title">👥 Реферальная программа</div>
+        <div class="ref-desc">Получайте <span class="gold">+50 ₽</span> когда друг совершает заказ</div>
+        <div class="ref-link-wrap">
+          <input type="text" id="ref-link" readonly class="ref-input"/>
+          <button class="btn-copy" id="btn-copy-ref">Копировать</button>
+        </div>
+        <button class="btn-share-tg" id="btn-share-ref">
+          <svg viewBox="0 0 24 24" width="15" height="15"><path fill="#fff" d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.94 8.19l-2.02 9.52c-.15.67-.54.84-1.08.52l-3-2.21-1.45 1.4c-.16.16-.3.3-.61.3l.21-3.03 5.5-4.97c.24-.21-.05-.33-.37-.12l-6.8 4.28-2.93-.92c-.64-.2-.65-.64.13-.95l11.44-4.41c.53-.19 1 .13.98.59z"/></svg>
+          Поделиться в Telegram
+        </button>
+      </div>
+
+      <!-- Orders -->
+      <div class="orders-section">
+        <h3 class="section-title">Мои заказы</h3>
+        <div id="orders-list" class="orders-list"></div>
+        <div id="orders-empty" class="empty-state-small">Заказов пока нет</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ АДМИН ═══ -->
+  <div id="page-admin" class="page">
+    <header class="header">
+      <button class="back-btn" id="btn-back-admin"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></button>
+      <h2 class="header-title">Админ-панель</h2>
+    </header>
+    <div class="admin-content">
+      <!-- Stats -->
+      <div class="admin-stats-row">
+        <div class="admin-stat"><div class="as-val" id="admin-products-count">0</div><div class="as-label">Товаров</div></div>
+        <div class="admin-stat"><div class="as-val" id="admin-orders-count">0</div><div class="as-label">Заказов</div></div>
+        <div class="admin-stat"><div class="as-val" id="admin-revenue">0 ₽</div><div class="as-label">Выручка</div></div>
+        <div class="admin-stat"><div class="as-val" id="admin-users">0</div><div class="as-label">Покупат.</div></div>
+      </div>
+
+      <!-- Admin ID setting -->
+      <div class="admin-card">
+        <div class="admin-card-title toggle-title" id="settings-toggle">
+          ⚙️ Настройки доступа
+          <svg class="toggle-caret" id="settings-caret" viewBox="0 0 24 24" width="16"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div id="settings-body" class="collapsible-body">
+          <div class="form-group">
+            <label>Ваш Telegram ID (для доступа к /admin в профиле)</label>
+            <input type="number" id="admin-tg-id" placeholder="Например: 123456789"/>
+            <div class="form-hint">Узнать ID: @userinfobot в Telegram</div>
+          </div>
+          <div class="form-group">
+            <label>Google Client ID (для авторизации)</label>
+            <input type="text" id="admin-google-id" placeholder="xxx.apps.googleusercontent.com"/>
+          </div>
+          <button class="btn-primary full" id="btn-save-settings" style="margin-top:10px">Сохранить настройки</button>
+        </div>
+      </div>
+
+      <!-- Robokassa -->
+      <div class="admin-card">
+        <div class="admin-card-title toggle-title" id="rk-toggle">
+          🔒 Robokassa
+          <svg class="toggle-caret" id="rk-caret" viewBox="0 0 24 24" width="16"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div id="rk-body" class="collapsible-body">
+          <div class="rk-warning">⚠️ В production пароли хранить на сервере!</div>
+          <div class="form-group"><label>Merchant Login</label><input type="text" id="rk-login"/></div>
+          <div class="form-row">
+            <div class="form-group"><label>Password #1</label><input type="password" id="rk-pass1"/></div>
+            <div class="form-group"><label>Password #2</label><input type="password" id="rk-pass2"/></div>
+          </div>
+          <label class="toggle-label"><input type="checkbox" id="rk-testmode" checked/><span class="toggle-switch"></span>Тестовый режим</label>
+          <button class="btn-primary full" id="btn-save-rk" style="margin-top:10px">Сохранить</button>
+          <div id="rk-saved-ok" class="rk-saved hidden">✓ Сохранено</div>
+        </div>
+      </div>
+
+      <!-- Drop / Акция -->
+      <div class="admin-card">
+        <div class="admin-card-title toggle-title" id="drop-toggle">
+          ⚡ Дроп / Акция
+          <svg class="toggle-caret" id="drop-caret" viewBox="0 0 24 24" width="16"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div id="drop-body" class="collapsible-body">
+          <div class="form-group"><label>Название</label><input type="text" id="admin-drop-name" placeholder="Летний дроп 2025"/></div>
+          <div class="form-group"><label>Дата и время</label><input type="datetime-local" id="admin-drop-date"/></div>
+          <button class="btn-primary full" id="btn-save-drop" style="margin-top:8px">Запустить</button>
+          <button class="btn-outline full" id="btn-clear-drop" style="margin-top:6px">Убрать баннер</button>
+        </div>
+      </div>
+
+      <!-- Промокоды -->
+      <div class="admin-card">
+        <div class="admin-card-title toggle-title" id="promo-toggle">
+          🎟 Промокоды
+          <svg class="toggle-caret" id="promo-caret" viewBox="0 0 24 24" width="16"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div id="promo-body" class="collapsible-body">
+          <div id="promo-list-admin" class="promo-list-admin"></div>
+          <div class="form-row" style="margin-top:10px">
+            <div class="form-group"><label>Код</label><input type="text" id="new-promo-code" placeholder="SALE10"/></div>
+            <div class="form-group"><label>Скидка %</label><input type="number" id="new-promo-pct" placeholder="10" min="1" max="50"/></div>
+          </div>
+          <button class="btn-primary full" id="btn-add-promo">Добавить промокод</button>
+        </div>
+      </div>
+
+      <!-- Статусы заказов -->
+      <div class="admin-card">
+        <div class="admin-card-title toggle-title" id="orders-toggle">
+          📦 Заказы
+          <svg class="toggle-caret" id="orders-caret" viewBox="0 0 24 24" width="16"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div id="orders-body" class="collapsible-body">
+          <div id="admin-orders-list" class="admin-orders-list"></div>
+          <div id="admin-orders-empty" class="empty-state-small">Заказов пока нет</div>
+        </div>
+      </div>
+
+      <!-- Добавить товар -->
+      <div class="admin-card">
+        <h3 class="admin-card-title">➕ Добавить товар</h3>
+        <div class="form-group"><label>Название</label><input type="text" id="admin-name" placeholder="Название товара"/></div>
+        <div class="form-row">
+          <div class="form-group"><label>Категория</label>
+            <select id="admin-cat"><option value="perfume">🌸 Духи</option><option value="clothes">👔 Одежда</option></select>
+          </div>
+          <div class="form-group"><label>Цена (₽)</label><input type="number" id="admin-price" placeholder="0" min="1"/></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Старая цена (₽)</label><input type="number" id="admin-old-price" placeholder="Если скидка"/></div>
+          <div class="form-group"><label>Остаток (шт.)</label><input type="number" id="admin-stock" placeholder="0 = неограничено"/></div>
+        </div>
+        <div class="form-group"><label>Продано (шт.)</label><input type="number" id="admin-sold" placeholder="0"/></div>
+        <div class="form-group"><label>Описание</label><textarea id="admin-desc" rows="3" placeholder="Описание..."></textarea></div>
+        <div class="form-group"><label>Теги (через запятую)</label><input type="text" id="admin-tags" placeholder="роза, мускус"/></div>
+        <div class="form-group">
+          <label>Бейджи</label>
+          <div class="badge-checks">
+            <label class="check-label"><input type="checkbox" id="badge-new"/> ✨ Новинка</label>
+            <label class="check-label"><input type="checkbox" id="badge-hit"/> 🔥 Хит</label>
+            <label class="check-label"><input type="checkbox" id="badge-orig"/> ✅ Оригинал</label>
+            <label class="check-label"><input type="checkbox" id="badge-last"/> ⚠️ Последние</label>
+          </div>
+        </div>
+        <div id="admin-notes-block" class="form-group">
+          <label>🎵 Ноты аромата</label>
+          <input type="text" id="admin-top-notes" placeholder="Верхние: бергамот, лимон" style="margin-bottom:6px"/>
+          <input type="text" id="admin-mid-notes" placeholder="Средние: роза, жасмин" style="margin-bottom:6px"/>
+          <input type="text" id="admin-base-notes" placeholder="Базовые: мускус, уд"/>
+        </div>
+        <div id="admin-sizes-block" class="form-group hidden">
+          <label>Размеры</label>
+          <input type="text" id="admin-sizes" placeholder="XS, S, M, L, XL, XXL"/>
+        </div>
+        <div class="form-group">
+          <label>Фото <span class="label-hint">(до 8 ссылок)</span></label>
+          <div id="photo-inputs-list" class="photo-inputs-list"></div>
+          <button type="button" class="btn-add-photo" id="btn-add-photo-input">
+            <svg viewBox="0 0 24 24" width="13" height="13"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Добавить фото
+          </button>
+        </div>
+        <div id="photos-preview-grid" class="photos-preview-grid"></div>
+        <button class="btn-primary full" id="btn-admin-add">Добавить товар</button>
+      </div>
+
+      <!-- Список товаров -->
+      <div class="admin-card">
+        <h3 class="admin-card-title">📦 Товары в магазине</h3>
+        <div id="admin-products-list" class="admin-products-list"></div>
+        <div id="admin-no-products" class="empty-state-small">Добавьте первый товар 👆</div>
+      </div>
+
+      <!-- Уведомления -->
+      <div class="admin-card">
+        <div class="admin-card-title toggle-title" id="notif-toggle">
+          📣 Уведомления покупателям
+          <svg class="toggle-caret" id="notif-caret" viewBox="0 0 24 24" width="16"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div id="notif-body" class="collapsible-body">
+          <div class="rk-warning">ℹ️ Требуется настройка Telegram Bot Token на сервере. Здесь — шаблоны сообщений.</div>
+          <div class="form-group"><label>Bot Token</label><input type="text" id="bot-token" placeholder="1234567890:AAFxxx..."/></div>
+          <div class="form-group"><label>Текст рассылки</label><textarea id="notif-text" rows="3" placeholder="Новинки этой недели! 🛍️..."></textarea></div>
+          <button class="btn-primary full" id="btn-send-notif">Отправить всем покупателям</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ УСПЕХ ═══ -->
+  <div id="page-success" class="page">
+    <div class="success-content">
+      <div class="success-circle"><svg viewBox="0 0 52 52"><circle cx="26" cy="26" r="25" class="sc-circle"/><path class="sc-check" d="M14 26l8 8 16-16"/></svg></div>
+      <h2 class="success-title">Заказ оформлен!</h2>
+      <p class="success-sub">Статус отслеживайте в профиле. Мы напишем вам в Telegram.</p>
+      <div class="success-order-id">Заказ #<span id="success-order-id">000</span></div>
+      <button class="btn-primary" onclick="navigate('home')">На главную</button>
+      <button class="btn-outline" onclick="navigate('profile')" style="margin-top:8px">Мои заказы</button>
+    </div>
+  </div>
+
+  <!-- ════════ МОДАЛЫ ════════ -->
+
+  <!-- Spin -->
+  <div id="modal-spin" class="modal-overlay hidden">
+    <div class="modal modal-center">
+      <div class="spin-title">🎰 Колесо фортуны</div>
+      <div class="spin-sub" id="spin-sub">Один шанс в день!</div>
+      <div class="wheel-wrap">
+        <div class="wheel-pointer">▼</div>
+        <div class="wheel" id="spin-wheel"><canvas id="wheel-canvas" width="240" height="240"></canvas></div>
+      </div>
+      <div id="spin-result" class="spin-result hidden"></div>
+      <button class="btn-primary full" id="btn-spin" style="margin-top:14px">Попытать удачу</button>
+      <button class="link-btn" style="margin-top:8px;display:block;text-align:center" onclick="document.getElementById('modal-spin').classList.add('hidden')">Закрыть</button>
+    </div>
+  </div>
+
+  <!-- Quiz -->
+  <div id="modal-quiz" class="modal-overlay hidden">
+    <div class="modal"><div class="modal-title">🌸 Подбор аромата</div><div id="quiz-body"></div></div>
+  </div>
+
+  <!-- Review -->
+  <div id="modal-review" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-title">✍️ Оставить отзыв</div>
+      <div class="review-stars-pick" id="review-stars-pick">
+        <span class="rs" data-v="1">★</span><span class="rs" data-v="2">★</span><span class="rs" data-v="3">★</span><span class="rs" data-v="4">★</span><span class="rs" data-v="5">★</span>
+      </div>
+      <div class="form-group"><label>Комментарий</label><textarea id="review-text" rows="4" placeholder="Ваш отзыв..."></textarea></div>
+      <div class="form-group"><label>Фото (ссылка)</label><input type="text" id="review-photo" placeholder="https://..."/></div>
+      <div class="modal-btns">
+        <button class="btn-outline" id="btn-review-cancel">Отмена</button>
+        <button class="btn-primary" id="btn-review-submit">Отправить</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Size -->
+  <div id="modal-size" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-title">📏 Таблица размеров</div>
+      <div style="overflow-x:auto">
+        <table class="size-table">
+          <thead><tr><th>Размер</th><th>Грудь</th><th>Талия</th><th>Бёдра</th></tr></thead>
+          <tbody>
+            <tr><td>XS</td><td>80–84</td><td>60–64</td><td>86–90</td></tr>
+            <tr><td>S</td><td>84–88</td><td>64–68</td><td>90–94</td></tr>
+            <tr><td>M</td><td>88–92</td><td>68–72</td><td>94–98</td></tr>
+            <tr><td>L</td><td>92–96</td><td>72–76</td><td>98–102</td></tr>
+            <tr><td>XL</td><td>96–100</td><td>76–80</td><td>102–106</td></tr>
+            <tr><td>XXL</td><td>100–108</td><td>80–88</td><td>106–114</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <button class="btn-outline full" onclick="document.getElementById('modal-size').classList.add('hidden')" style="margin-top:12px">Закрыть</button>
+    </div>
+  </div>
+
+  <!-- Top-up -->
+  <div id="modal-topup" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-title">💰 Пополнение баланса</div>
+      <p class="modal-sub">Оплата через Robokassa</p>
+      <div class="topup-amounts">
+        <button class="topup-amt" data-amt="500">500 ₽</button>
+        <button class="topup-amt" data-amt="1000">1 000 ₽</button>
+        <button class="topup-amt" data-amt="2000">2 000 ₽</button>
+        <button class="topup-amt" data-amt="5000">5 000 ₽</button>
+      </div>
+      <div class="form-group"><label>Другая сумма</label><input type="number" id="topup-custom" placeholder="Минимум 50 ₽" min="50"/></div>
+      <div class="rk-topup-note">🔒 PCI DSS · SSL · Безопасная оплата</div>
+      <div class="modal-btns">
+        <button class="btn-outline" id="btn-topup-cancel">Отмена</button>
+        <button class="btn-primary" id="btn-topup-confirm">Пополнить</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-btn" data-page="home">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span>Главная</span>
+    </button>
+    <button class="nav-btn" data-page="wishlist">
+      <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+      <span>Вишлист</span>
+      <span class="nav-badge" id="nav-wish-badge" style="display:none"></span>
+    </button>
+    <button class="nav-btn" data-page="cart">
+      <svg viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4zM3 6h18M16 10a4 4 0 01-8 0"/></svg>
+      <span>Корзина</span>
+      <span class="nav-badge" id="nav-cart-badge" style="display:none"></span>
+    </button>
+    <button class="nav-btn" data-page="profile">
+      <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      <span>Профиль</span>
+    </button>
+  </nav>
+
+</div>
+<script src="script.js"></script>
+</body>
+</html>
